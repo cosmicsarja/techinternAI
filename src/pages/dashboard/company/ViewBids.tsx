@@ -52,15 +52,30 @@ export default function ViewBids() {
   const acceptBid = async (bid: any, projectId: string) => {
     setAccepting(bid.id);
     try {
+      const projectTitle = projects.find(p => p.id === projectId)?.title || 'Project';
+      
+      // Get all other bids to notify rejections
+      const { data: otherBids } = await supabase
+        .from('bids')
+        .select('student_id')
+        .eq('project_id', projectId)
+        .neq('id', bid.id)
+        .eq('status', 'pending');
+      
+      const rejectionPromises = (otherBids || []).map(b =>
+        sendNotification(b.student_id, '💬 Proposal Update', `Your proposal for "${projectTitle}" was not selected this time. Keep bidding!`, 'warning')
+      );
+      
       await Promise.all([
         supabase.from('bids').update({ status: 'accepted' }).eq('id', bid.id),
         supabase.from('bids').update({ status: 'rejected' }).eq('project_id', projectId).neq('id', bid.id),
         supabase.from('projects').update({ status: 'assigned' }).eq('id', projectId),
         supabase.from('teams').insert({ project_id: projectId, leader_id: bid.student_id }),
         supabase.from('payments').insert({ project_id: projectId, amount: bid.bid_amount, status: 'escrow', payer_id: profile?.id, recipient_id: bid.student_id }),
-        sendNotification(bid.student_id, '🎉 Bid Accepted!', `Your bid on "${projects.find(p => p.id === projectId)?.title}" has been accepted!`, 'success')
+        sendNotification(bid.student_id, '🎉 Bid Accepted!', `Your bid on "${projectTitle}" has been accepted! Check your Won Projects.`, 'success'),
+        ...rejectionPromises
       ]);
-      toast.success('Bid accepted! Project is now assigned.');
+      toast.success('Bid accepted! Team created. Project assigned.');
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
     setAccepting(null);

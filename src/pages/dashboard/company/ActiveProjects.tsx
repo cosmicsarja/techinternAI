@@ -96,6 +96,18 @@ export default function ActiveProjects() {
       toast.error('Failed to update status: ' + error.message);
     } else {
       toast.success(`Project marked as ${newStatus.replace('_', ' ')}`);
+      // Notify team if status changes to in_progress
+      if (newStatus === 'in_progress') {
+        const project = projects.find(p => p.id === id);
+        if (project) {
+          const { data: teams } = await supabase.from('teams').select('leader_id').eq('project_id', id);
+          if (teams && teams.length > 0) {
+            for (const team of teams) {
+              await sendNotification(team.leader_id, 'Project Started!', `"${project.title}" is now in progress. Start delivering milestones!`, 'info');
+            }
+          }
+        }
+      }
       fetchProjects();
     }
   };

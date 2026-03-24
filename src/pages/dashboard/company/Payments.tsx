@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { DollarSign, Building, Wallet, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2, AlertCircle, ShoppingCart } from 'lucide-react';
 import { useRealtime } from '@/hooks/useRealtime';
+import { sendNotification } from '@/lib/notifications';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function CompanyPayments() {
   const { profile } = useAuth();
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [releasing, setReleasing] = useState<string | null>(null);
 
   const fetchPayments = useCallback(async () => {
     if (!profile) return;
@@ -41,6 +43,33 @@ export default function CompanyPayments() {
     const ids = new Set(p.map(item => item.project_id));
     return ids.size;
   }
+
+  const releaseEscrow = async (payment: any) => {
+    setReleasing(payment.id);
+    try {
+      const { error } = await supabase
+        .from('payments')
+        .update({ status: 'released', released_at: new Date().toISOString() })
+        .eq('id', payment.id);
+      
+      if (error) throw error;
+      
+      // Notify recipient that payment was released
+      await sendNotification(
+        payment.recipient_id,
+        '💰 Payment Released!',
+        `$${Number(payment.amount).toLocaleString()} has been released from escrow for "${payment.projects?.title}".`,
+        'success'
+      );
+      
+      toast.success('Payment released from escrow!');
+      fetchPayments();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setReleasing(null);
+    }
+  };
 
   const statusConfig: Record<string, { color: string; icon: any }> = {
     released: { color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', icon: CheckCircle2 },
@@ -103,24 +132,39 @@ export default function CompanyPayments() {
               {payments.map((p) => {
                 const { color, icon: Icon } = statusConfig[p.status] || statusConfig.pending;
                 return (
-                  <div key={p.id} className="p-5 flex items-center gap-4 hover:bg-muted/10 transition-colors">
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border border-white/5 shadow-sm ${color}`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-semibold text-foreground truncate">{p.projects?.title || 'System Charge'}</p>
-                        <Badge variant="secondary" className={`text-[9px] py-0 font-bold border ${color}`}>{p.status}</Badge>
+                  <div key={p.id} className="p-5 flex items-center gap-4 justify-between hover:bg-muted/10 transition-colors">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border border-white/5 shadow-sm ${color}`}>
+                        <Icon className="w-5 h-5" />
                       </div>
-                      <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                        <span className="flex items-center gap-1 font-semibold text-foreground/80">Recipient ID: {p.recipient_id?.slice(0, 8)}...</span>
-                        <span>•</span>
-                        <span>Milestone Release</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-semibold text-foreground truncate">{p.projects?.title || 'System Charge'}</p>
+                          <Badge variant="secondary" className={`text-[9px] py-0 font-bold border ${color}`}>{p.status}</Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                          <span className="flex items-center gap-1 font-semibold text-foreground/80">Recipient ID: {p.recipient_id?.slice(0, 8)}...</span>
+                          <span>•</span>
+                          <span>Milestone Release</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right flex flex-col items-end shrink-0">
-                      <p className="text-sm font-bold text-foreground">-${Number(p.amount).toLocaleString()}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</p>
+                    <div className="text-right flex flex-col items-end shrink-0 gap-2">
+                      <div>
+                        <p className="text-sm font-bold text-foreground">-${Number(p.amount).toLocaleString()}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</p>
+                      </div>
+                      {p.status === 'escrow' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => releaseEscrow(p)}
+                          disabled={releasing === p.id}
+                          className="text-xs h-8 px-3 font-semibold border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10"
+                        >
+                          {releasing === p.id ? 'Releasing...' : 'Release'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
