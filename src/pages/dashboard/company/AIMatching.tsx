@@ -13,7 +13,6 @@ import { useRealtime } from '@/hooks/useRealtime';
 import { sendNotification } from '@/lib/notifications';
 import {
   recommendTeam,
-  getMatchStatistics,
   MatchResult,
   TeamRecommendation,
 } from '@/lib/matching';
@@ -134,7 +133,6 @@ export default function AIMatching() {
         <div className="space-y-6">
           {projects.map(project => {
             const recommendation = recommendations[project.id];
-            const stats = recommendation ? getMatchStatistics([]) : null;
 
             return (
               <Card key={project.id} className="shadow-elevated border-none overflow-hidden">
