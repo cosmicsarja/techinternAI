@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, PlusCircle, FileText, FolderOpen, UserCheck,
-  Code2, ListTodo, DollarSign, Star, Settings, Eye
+  Code2, ListTodo, DollarSign, Star, Settings, Eye, Zap
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import {
@@ -10,6 +10,7 @@ import {
 
 const items = [
   { title: 'Overview', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'AI Talent Match', url: '/dashboard/ai-matching', icon: Zap },
   { title: 'Post Project', url: '/dashboard/post-project', icon: PlusCircle },
   { title: 'Active Projects', url: '/dashboard/projects', icon: FolderOpen },
   { title: 'Review Bids', url: '/dashboard/bids', icon: FileText },

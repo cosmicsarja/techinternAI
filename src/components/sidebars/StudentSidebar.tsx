@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, User, Search, FileText, Trophy, Users, ListTodo,
-  Code2, DollarSign, Star, BarChart3, Settings
+  Code2, DollarSign, Star, BarChart3, Settings, Zap
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import {
@@ -11,6 +11,7 @@ import {
 const items = [
   { title: 'Overview', url: '/dashboard', icon: LayoutDashboard },
   { title: 'My Profile', url: '/dashboard/profile', icon: User },
+  { title: 'AI Recommended', url: '/dashboard/recommended', icon: Zap },
   { title: 'Browse Projects', url: '/dashboard/projects', icon: Search },
   { title: 'My Bids', url: '/dashboard/bids', icon: FileText },
   { title: 'Won Projects', url: '/dashboard/won-projects', icon: Trophy },

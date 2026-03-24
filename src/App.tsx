@@ -23,6 +23,7 @@ import TeamManagement from "./pages/dashboard/student/TeamManagement";
 import StudentReviews from "./pages/dashboard/student/StudentReviews";
 import StudentSettings from "./pages/dashboard/student/StudentSettings";
 import WonProjects from "./pages/dashboard/student/WonProjects";
+import RecommendedProjects from "./pages/dashboard/student/RecommendedProjects";
 
 // Company Pages
 import CompanyProfile from "./pages/dashboard/company/CompanyProfile";
@@ -34,6 +35,7 @@ import CompanyWorkspace from "./pages/dashboard/company/Workspace";
 import CompanyPayments from "./pages/dashboard/company/Payments";
 import CompanyReviews from "./pages/dashboard/company/CompanyReviews";
 import CompanySettings from "./pages/dashboard/company/CompanySettings";
+import AIMatching from "./pages/dashboard/company/AIMatching";
 
 // Admin Pages
 import AdminProfile from "./pages/dashboard/admin/AdminProfile";
@@ -156,10 +158,12 @@ const App = () => (
 
             {/* Student Specific URLs */}
             <Route path="/dashboard/teams" element={<DashboardLayout><RoleRoute allowedRoles={['student']}><TeamManagement /></RoleRoute></DashboardLayout>} />
+            <Route path="/dashboard/recommended" element={<DashboardLayout><RoleRoute allowedRoles={['student']}><RecommendedProjects /></RoleRoute></DashboardLayout>} />
 
             {/* Company Specific URLs */}
             <Route path="/dashboard/post-project" element={<DashboardLayout><RoleRoute allowedRoles={['company']}><PostProject /></RoleRoute></DashboardLayout>} />
             <Route path="/dashboard/select-leader" element={<DashboardLayout><RoleRoute allowedRoles={['company']}><ViewBids /></RoleRoute></DashboardLayout>} />
+            <Route path="/dashboard/ai-matching" element={<DashboardLayout><RoleRoute allowedRoles={['company']}><AIMatching /></RoleRoute></DashboardLayout>} />
 
             {/* Admin Specific URLs */}
             <Route path="/dashboard/analytics" element={<DashboardLayout><RoleRoute allowedRoles={['admin', 'student']}><AdminAnalytics /></RoleRoute></DashboardLayout>} />
