@@ -49,13 +49,13 @@ const queryClient = new QueryClient();
 const RoleRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: string[] }) => {
   const { profile, loading, user } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
-  
+
   // If no user at all, redirect to auth
   if (!user) return <Navigate to="/auth" />;
-  
+
   // If profile isn't loaded yet or role doesn't match, return null to avoid sibling redirects
   if (!profile || !allowedRoles.includes(profile.role)) return null;
-  
+
   return <>{children}</>;
 };
 
