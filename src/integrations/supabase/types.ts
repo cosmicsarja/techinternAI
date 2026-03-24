@@ -188,7 +188,9 @@ export type Database = {
           amount: number
           created_at: string
           id: string
+          payer_id: string | null
           project_id: string
+          recipient_id: string | null
           released_at: string | null
           status: Database["public"]["Enums"]["payment_status"]
         }
@@ -196,7 +198,9 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          payer_id?: string | null
           project_id: string
+          recipient_id?: string | null
           released_at?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
         }
@@ -204,16 +208,32 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          payer_id?: string | null
           project_id?: string
+          recipient_id?: string | null
           released_at?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
         }
         Relationships: [
           {
+            foreignKeyName: "payments_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payments_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

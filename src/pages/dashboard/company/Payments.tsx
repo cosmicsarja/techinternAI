@@ -16,12 +16,15 @@ export default function CompanyPayments() {
 
   const fetchPayments = useCallback(async () => {
     if (!profile) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('payments')
       .select('*, projects(title, recipient:profiles!projects_company_id_fkey(name))')
       .eq('payer_id', profile.id)
       .order('created_at', { ascending: false });
+    
+    // Default to empty array if query fails due to missing columns before migration
     if (data) setPayments(data);
+    else if (error && error.code === '42703') setPayments([]); 
     setLoading(false);
   }, [profile]);
 

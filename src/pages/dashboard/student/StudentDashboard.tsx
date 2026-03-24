@@ -40,7 +40,8 @@ export default function StudentDashboard() {
       supabase.from('reviews').select('rating').eq('reviewee_id', profile.id),
     ]);
 
-    const earnings = pays?.reduce((a, b) => a + Number(b.amount), 0) || 0;
+    // Handle undefined payments if migration hasn't run yet
+    const earnings = (pays || []).reduce((a, b) => a + Number(b.amount), 0);
     const avgRating = reviews?.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
 
     setStats({

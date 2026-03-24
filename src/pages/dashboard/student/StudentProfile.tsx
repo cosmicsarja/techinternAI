@@ -107,6 +107,54 @@ export default function StudentProfile() {
                  < Trophy className="w-6 h-6 text-primary/20" />
               </div>
            </Card>
+
+           <Card className="shadow-elevated border-none bg-card p-6 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10 space-y-5">
+                 <div className="flex items-center justify-between">
+                    <h3 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                       <Code className="w-4 h-4 text-primary mb-0.5" /> Skill Breakdown
+                    </h3>
+                    <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 text-[10px] uppercase font-bold px-2 py-0 h-5">Verified</Badge>
+                 </div>
+                 
+                 <div className="space-y-4">
+                    <div className="space-y-1.5">
+                       <div className="flex justify-between text-xs font-bold">
+                          <span className="text-foreground">Frontend (React/Vite)</span>
+                          <span className="text-primary">85%</span>
+                       </div>
+                       <div className="h-2 w-full bg-muted overflow-hidden rounded-full">
+                          <div className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full transition-all duration-1000 ease-out" style={{ width: '85%' }} />
+                       </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                       <div className="flex justify-between text-xs font-bold">
+                          <span className="text-foreground">Backend (Node/Supabase)</span>
+                          <span className="text-primary">72%</span>
+                       </div>
+                       <div className="h-2 w-full bg-muted overflow-hidden rounded-full">
+                          <div className="h-full bg-gradient-to-r from-emerald-500/60 to-emerald-500 rounded-full transition-all duration-1000 ease-out" style={{ width: '72%' }} />
+                       </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                       <div className="flex justify-between text-xs font-bold">
+                          <span className="text-foreground">UI/UX (Tailwind/CSS)</span>
+                          <span className="text-primary">90%</span>
+                       </div>
+                       <div className="h-2 w-full bg-muted overflow-hidden rounded-full">
+                          <div className="h-full bg-gradient-to-r from-amber-500/60 to-amber-500 rounded-full transition-all duration-1000 ease-out" style={{ width: '90%' }} />
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="pt-2 border-t border-border/50">
+                    <p className="text-[10px] text-muted-foreground text-center font-medium">Scores auto-calculated based on project deliverables and company reviews.</p>
+                 </div>
+              </div>
+           </Card>
         </div>
 
         {/* Right Column: Bio & Portfolio */}

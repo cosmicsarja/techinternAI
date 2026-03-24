@@ -60,24 +60,14 @@ export default function ActiveProjects() {
       .eq('company_id', profile.id)
       .order(sortField as any, { ascending: !sortDir });
     if (data) setProjects(data as Project[]);
-  }, [sort]);
-
-  const fetchMyBids = useCallback(async () => {
-    if (!profile) return;
-    const { data } = await supabase.from('bids').select('project_id').eq('student_id', profile.id);
-    if (data) setMyBidIds(new Set(data.map((b) => b.project_id)));
-  }, [profile]);
+  }, [sort, profile]);
 
   useEffect(() => {
     fetchProjects();
-    fetchMyBids();
-  }, [fetchProjects, fetchMyBids]);
+  }, [fetchProjects]);
 
-  // Realtime – new projects show up immediately
   useRealtime([
-    { table: 'projects', event: 'INSERT', onData: () => fetchProjects() },
-    { table: 'projects', event: 'UPDATE', onData: () => fetchProjects() },
-    { table: 'bids', event: 'INSERT', onData: () => fetchMyBids() },
+    { table: 'projects', filter: `company_id=eq.${profile?.id}`, onData: () => fetchProjects() },
   ], [sort, profile?.id]);
 
   const filtered = projects.filter((p) => {
@@ -89,41 +79,25 @@ export default function ActiveProjects() {
     );
   });
 
-  const submitBid = async () => {
-    if (!profile || !bidProject) return;
-    if (!proposal.trim() || !bidAmount) {
-      toast.error('Proposal and bid amount are required');
-      return;
-    }
-    setSubmitting(true);
-    const { error } = await supabase.from('bids').insert({
-      project_id: bidProject.id,
-      student_id: profile.id,
-      proposal,
-      bid_amount: parseFloat(bidAmount),
-      timeline,
-    });
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this project?')) return;
+    const { error } = await supabase.from('projects').delete().eq('id', id);
     if (error) {
-      toast.error(error.message);
+      toast.error('Failed to delete project: ' + error.message);
     } else {
-      toast.success('Bid submitted! The company will review your proposal.');
-      // Notify the company
-      if (bidProject.profiles?.id) {
-        await sendNotification(
-          bidProject.profiles.id,
-          'New bid received',
-          `${profile.name} submitted a $${parseFloat(bidAmount).toLocaleString()} bid on "${bidProject.title}"`,
-          'info'
-        );
-      }
-      setMyBidIds((prev) => new Set([...prev, bidProject.id]));
-      setOpen(false);
-      setBidProject(null);
-      setProposal('');
-      setBidAmount('');
-      setTimeline('');
+      toast.success('Project deleted');
+      setProjects(projects.filter(p => p.id !== id));
     }
-    setSubmitting(false);
+  };
+
+  const handleStatusChange = async (id: string, newStatus: 'open' | 'in_progress' | 'assigned' | 'completed' | 'cancelled') => {
+    const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', id);
+    if (error) {
+      toast.error('Failed to update status: ' + error.message);
+    } else {
+      toast.success(`Project marked as ${newStatus.replace('_', ' ')}`);
+      fetchProjects();
+    }
   };
 
   return (
@@ -142,14 +116,14 @@ export default function ActiveProjects() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             id="project-search"
-            placeholder="Search by title, description or tech..."
+            placeholder="Search your projects..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-11 bg-card border-border shadow-sm"
           />
         </div>
         <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="w-full sm:w-52" id="project-sort">
+          <SelectTrigger className="w-full sm:w-52 h-11 bg-card border-border shadow-sm" id="project-sort">
             <SlidersHorizontal className="w-3 h-3 mr-2 text-muted-foreground" />
             <SelectValue />
           </SelectTrigger>
@@ -162,130 +136,75 @@ export default function ActiveProjects() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border/60 rounded-xl bg-card/50">
           <Sparkles className="w-10 h-10 text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground font-medium">No open projects found</p>
-          <p className="text-muted-foreground/60 text-sm mt-1">Try adjusting your search or check back later</p>
+          <p className="text-muted-foreground font-medium">No projects found</p>
+          <p className="text-muted-foreground/60 text-sm mt-1">Post a new project to start receiving bids from students.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((p) => {
-            const alreadyBid = myBidIds.has(p.id);
-            return (
-              <Card
-                key={p.id}
-                className={`shadow-card hover:shadow-elevated transition-all duration-200 flex flex-col border-border ${alreadyBid ? 'border-primary/30' : ''}`}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-base leading-snug">{p.title}</CardTitle>
-                    <Badge variant="secondary" className={`text-[10px] border capitalize shrink-0 ${p.status === 'open' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' : 'bg-blue-500/15 text-blue-400 border-blue-500/20'}`}>
-                      {p.status.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">by {p.profiles?.name || 'Unknown'}</p>
-                </CardHeader>
-                <CardContent className="space-y-4 flex-1 flex flex-col">
-                  <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{p.description}</p>
-                  {p.tech_stack.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {p.tech_stack.slice(0, 5).map((t) => (
-                        <Badge key={t} variant="outline" className="text-[10px] py-0">
-                          <Code2 className="w-2.5 h-2.5 mr-1" />{t}
-                        </Badge>
-                      ))}
-                      {p.tech_stack.length > 5 && (
-                        <Badge variant="outline" className="text-[10px] py-0">+{p.tech_stack.length - 5}</Badge>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1 font-medium text-foreground">
-                      <DollarSign className="w-3.5 h-3.5 text-primary" />${Number(p.budget).toLocaleString()}
-                    </span>
-                    {p.deadline && (
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />{new Date(p.deadline).toLocaleDateString()}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {filtered.map((p) => (
+            <Card
+              key={p.id}
+              className="shadow-card border-border bg-card flex flex-col h-full"
+            >
+              <CardHeader className="pb-3 border-b border-border/50">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <CardTitle className="text-lg leading-tight">{p.title}</CardTitle>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <Badge variant="secondary" className={`text-[10px] font-bold tracking-widest uppercase ${
+                        p.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' : 
+                        p.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20' : 
+                        'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}>
+                        {p.status.replace('_', ' ')}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Added {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}
                       </span>
-                    )}
-                    <span className="ml-auto">{formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</span>
+                    </div>
                   </div>
-
-                  {profile?.role === 'student' && (
-                    alreadyBid ? (
-                      <div className="flex items-center justify-center gap-2 py-2 rounded-lg bg-primary/5 border border-primary/20">
-                        <ArrowUpRight className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-xs text-primary font-medium">Bid submitted</span>
-                      </div>
-                    ) : (
-                      <Dialog open={open && bidProject?.id === p.id}
-                        onOpenChange={(o) => { if (!o) { setBidProject(null); setOpen(false); } }}>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            className="w-full gradient-primary text-primary-foreground"
-                            onClick={() => { setBidProject(p); setOpen(true); }}
-                          >
-                            Place Bid
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>Bid on: {p.title}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 pt-1">
-                            <div className="p-3 rounded-lg bg-muted/30 border border-border text-sm text-muted-foreground">
-                              Budget: <span className="font-semibold text-foreground">${Number(p.budget).toLocaleString()}</span>
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="bid-proposal">Proposal *</Label>
-                              <Textarea
-                                id="bid-proposal"
-                                value={proposal}
-                                onChange={(e) => setProposal(e.target.value)}
-                                placeholder="Why are you the best fit? Include your experience, approach, and what makes your solution unique..."
-                                rows={5}
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-2">
-                                <Label htmlFor="bid-amount">Bid Amount ($) *</Label>
-                                <Input
-                                  id="bid-amount"
-                                  type="number"
-                                  value={bidAmount}
-                                  onChange={(e) => setBidAmount(e.target.value)}
-                                  placeholder="1000"
-                                  min="0"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="bid-timeline">Timeline</Label>
-                                <Input
-                                  id="bid-timeline"
-                                  value={timeline}
-                                  onChange={(e) => setTimeline(e.target.value)}
-                                  placeholder="e.g. 2 weeks"
-                                />
-                              </div>
-                            </div>
-                            <Button
-                              id="submit-bid-btn"
-                              onClick={submitBid}
-                              disabled={submitting || !proposal.trim() || !bidAmount}
-                              className="w-full gradient-primary text-primary-foreground"
-                            >
-                              {submitting ? 'Submitting...' : 'Submit Bid'}
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    )
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                  <div className="text-right shrink-0 bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest pl-1 mb-0.5">Budget</p>
+                    <p className="text-lg font-black text-foreground">${p.budget.toLocaleString()}</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4 flex flex-col flex-1">
+                <p className="text-sm text-foreground/80 line-clamp-2 leading-relaxed mb-6 flex-1">
+                  {p.description}
+                </p>
+                <div className="space-y-4 mt-auto">
+                  <div className="flex flex-wrap gap-1.5">
+                    {p.tech_stack.map((t) => (
+                      <span key={t} className="px-2.5 py-1 rounded bg-muted text-muted-foreground text-[11px] font-semibold border border-white/5 whitespace-nowrap">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
+                    <div className="flex items-center gap-2">
+                       <Select value={p.status} onValueChange={(val) => handleStatusChange(p.id, val as any)}>
+                         <SelectTrigger className="h-9 text-xs font-semibold">
+                            <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                            <SelectItem value="open">Open</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                         </SelectContent>
+                       </Select>
+                    </div>
+                    <Button variant="destructive" size="sm" className="h-9 font-bold" onClick={() => handleDelete(p.id)}>
+                      Delete Project
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </div>

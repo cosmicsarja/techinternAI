@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import StudentSidebar from '@/components/sidebars/StudentSidebar';
 import CompanySidebar from '@/components/sidebars/CompanySidebar';
 import AdminSidebar from '@/components/sidebars/AdminSidebar';
@@ -8,9 +8,24 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NotificationDropdown from '@/components/NotificationDropdown';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { profile, loading, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   if (loading) {
     return (
@@ -31,8 +46,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const SidebarComponent =
     profile.role === 'admin' ? AdminSidebar :
-    profile.role === 'company' ? CompanySidebar :
-    StudentSidebar;
+      profile.role === 'company' ? CompanySidebar :
+        StudentSidebar;
 
   return (
     <SidebarProvider>
@@ -48,12 +63,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             <div className="flex items-center gap-3">
               <NotificationDropdown />
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-                  {profile.name?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
-                <span className="text-sm font-medium text-foreground hidden sm:block">{profile.name}</span>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+                    <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold shadow-sm">
+                      {profile.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                    <span className="text-sm font-medium text-foreground hidden sm:block">{profile.name}</span>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-card border border-border shadow-elevated">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{profile.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{profile.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive font-medium cursor-pointer">
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">
