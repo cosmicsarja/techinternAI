@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useRealtime } from '@/hooks/useRealtime';
+import { DummyStudentSeeder } from '@/components/DummyStudentSeeder';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 
@@ -162,6 +163,7 @@ export default function CompanyDashboard() {
                   <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Pro Tip</p>
                   <p className="text-xs font-medium text-foreground leading-relaxed">Selecting a Project Leader with a Skill Score {'>'} 80 reduces delivery time by 15%.</p>
                </div>
+                <DummyStudentSeeder />
             </CardContent>
          </Card>
       </div>
