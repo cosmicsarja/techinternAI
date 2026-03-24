@@ -134,29 +134,44 @@ export async function seedDummyStudents() {
       .from('profiles')
       .select('id')
       .eq('role', 'student')
-      .eq('email', dummyStudents[0].email)
-      .single();
+      .limit(1)
+      .maybeSingle();
 
     if (existing) {
       console.log('Dummy students already exist in database');
       return { success: true, message: 'Dummy students already seeded' };
     }
 
-    // Insert all dummy students
+    // Use batch insert with proper error handling
+    const profilesToInsert = dummyStudents.map(student => ({
+      name: student.name,
+      email: student.email,
+      role: 'student' as const,
+      skill_score: student.skill_score,
+      github_url: student.github_url,
+      avatar_url: student.avatar_url,
+      bio: student.bio,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+
     const { data, error } = await supabase
       .from('profiles')
-      .insert(
-        dummyStudents.map(student => ({
-          ...student,
-          role: 'student',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }))
-      )
+      .insert(profilesToInsert)
       .select();
 
     if (error) {
       console.error('Error seeding dummy students:', error);
+      
+      // Provide detailed error feedback
+      if (error.message.includes('row-level security') || error.code === 'PGRST301') {
+        return {
+          success: false,
+          error: 'RLS Policy Error: Your account does not have permission to create student profiles. Please use an admin account or contact your administrator.',
+          details: error.message
+        };
+      }
+      
       return { success: false, error: error.message };
     }
 
