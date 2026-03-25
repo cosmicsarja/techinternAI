@@ -99,7 +99,7 @@ export default function Analytics() {
   const statCards = [
     { title: 'Total Users', value: data.users, icon: Users, variant: 'primary' as const },
     { title: 'Projects', value: data.projects, icon: FolderOpen, variant: 'accent' as const },
-    { title: 'Revenue', value: `$${data.revenue.toLocaleString()}`, icon: DollarSign, variant: 'warning' as const },
+    { title: 'Revenue', value: `₹${data.revenue.toLocaleString()}`, icon: DollarSign, variant: 'warning' as const },
     { title: 'Total Bids', value: data.bids, icon: BarChart3, variant: 'default' as const },
     { title: 'Milestones', value: data.milestones, icon: CheckCircle, variant: 'accent' as const },
     { title: 'Teams', value: data.teams, icon: Users, variant: 'primary' as const },

@@ -78,7 +78,7 @@ export default function CompanyDashboard() {
         {[
           { label: 'Live Initiatives', value: stats.active, icon: Activity, color: 'text-blue-400', bg: 'bg-blue-500/10' },
           { label: 'Pending Proposals', value: stats.pendingBids, icon: FileText, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-          { label: 'Net Investment', value: `$${stats.totalSpend.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+          { label: 'Net Investment', value: `₹${stats.totalSpend.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
           { label: 'Success Rate', value: '100%', icon: ShieldCheck, color: 'text-purple-400', bg: 'bg-purple-500/10' },
         ].map((s) => (
           <Card key={s.label} className="border-none shadow-card hover:bg-muted/5 transition-colors">
@@ -120,7 +120,7 @@ export default function CompanyDashboard() {
                                <Badge variant="outline" className={`text-[9px] font-black uppercase border ${statusColor[p.status]}`}>{p.status}</Badge>
                             </div>
                             <div className="flex items-center gap-5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                               <span>Budget: ${Number(p.budget).toLocaleString()}</span>
+                               <span>Budget: ₹{Number(p.budget).toLocaleString()}</span>
                                <span>•</span>
                                <span>Initialized {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</span>
                             </div>

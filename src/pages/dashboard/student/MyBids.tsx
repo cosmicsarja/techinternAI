@@ -117,7 +117,7 @@ export default function MyBids() {
 
                       <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
                         <span className="flex items-center gap-1 font-semibold text-foreground">
-                          <DollarSign className="w-3 h-3 text-primary" />${Number(b.bid_amount).toLocaleString()}
+                          <DollarSign className="w-3 h-3 text-primary" />₹{Number(b.bid_amount).toLocaleString()}
                         </span>
                         {b.timeline && (
                           <span className="flex items-center gap-1">

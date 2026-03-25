@@ -78,8 +78,8 @@ export default function AdminDashboard() {
         {[
           { label: 'Total Network Nodes', value: stats.users, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10' },
           { label: 'Deployed Projects', value: stats.projects, icon: Briefcase, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-          { label: 'Processed Volume', value: `$${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-          { label: 'Secured Escrow', value: `$${stats.escrow.toLocaleString()}`, icon: Lock, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+          { label: 'Processed Volume', value: `₹${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+          { label: 'Secured Escrow', value: `₹${stats.escrow.toLocaleString()}`, icon: Lock, color: 'text-amber-400', bg: 'bg-amber-500/10' },
         ].map((s) => (
           <Card key={s.label} className="border-none shadow-card hover:bg-slate-900/40 transition-all border-l-4 border-l-primary/30">
             <CardContent className="p-6 flex items-center justify-between">

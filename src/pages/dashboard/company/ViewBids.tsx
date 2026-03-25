@@ -151,7 +151,7 @@ export default function ViewBids() {
                                   <div className="space-y-2">
                                      <div className="flex items-center justify-between p-2 rounded-lg bg-muted/40 text-[11px] font-medium text-muted-foreground uppercase">
                                         <span>Candidate Bid</span>
-                                        <span className="text-foreground font-bold">${Number(b.bid_amount).toLocaleString()}</span>
+                                        <span className="text-foreground font-bold">₹{Number(b.bid_amount).toLocaleString()}</span>
                                      </div>
                                      <div className="flex items-center justify-between p-2 rounded-lg bg-muted/40 text-[11px] font-medium text-muted-foreground uppercase">
                                         <span>Timeline</span>

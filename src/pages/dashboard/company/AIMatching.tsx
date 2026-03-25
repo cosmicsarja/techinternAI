@@ -217,7 +217,7 @@ export default function AIMatching() {
                     <div className="flex flex-col items-end gap-3 shrink-0">
                       <div className="text-right">
                         <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Budget</p>
-                        <p className="text-2xl font-black text-foreground">${Number(project.budget).toLocaleString()}</p>
+                        <p className="text-2xl font-black text-foreground">₹{Number(project.budget).toLocaleString()}</p>
                       </div>
                       {!createdTeams.has(project.id) && recommendation && recommendation.suggestedMembers.length > 0 && (
                         <Button

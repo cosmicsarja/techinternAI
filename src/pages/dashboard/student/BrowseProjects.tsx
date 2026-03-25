@@ -200,7 +200,7 @@ export default function StudentBrowse() {
                   )}
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1 font-medium text-foreground">
-                      <DollarSign className="w-3.5 h-3.5 text-primary" />${Number(p.budget).toLocaleString()}
+                      <DollarSign className="w-3.5 h-3.5 text-primary" />₹{Number(p.budget).toLocaleString()}
                     </span>
                     {p.deadline && (
                       <span className="flex items-center gap-1">
@@ -234,7 +234,7 @@ export default function StudentBrowse() {
                           </DialogHeader>
                           <div className="space-y-4 pt-1">
                             <div className="p-3 rounded-lg bg-muted/30 border border-border text-sm text-muted-foreground">
-                              Budget: <span className="font-semibold text-foreground">${Number(p.budget).toLocaleString()}</span>
+                              Budget: <span className="font-semibold text-foreground">₹{Number(p.budget).toLocaleString()}</span>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="bid-proposal">Proposal *</Label>

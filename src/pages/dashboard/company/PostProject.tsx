@@ -174,7 +174,7 @@ export default function PostProject() {
                   <div className="grid grid-cols-2 gap-4 border-t border-border pt-8">
                      <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Budget Allocation</p>
-                        <p className="text-2xl font-black text-foreground">${Number(budget).toLocaleString()}</p>
+                        <p className="text-2xl font-black text-foreground">₹{Number(budget).toLocaleString()}</p>
                      </div>
                      <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Target Deadline</p>

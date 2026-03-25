@@ -152,7 +152,7 @@ export default function WonProjects() {
                   </div>
                   <div className="text-right shrink-0 bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
                     <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest pl-1 mb-0.5">Budget</p>
-                    <p className="text-lg font-black text-foreground">${p.budget.toLocaleString()}</p>
+                    <p className="text-lg font-black text-foreground">₹{p.budget.toLocaleString()}</p>
                   </div>
                 </div>
               </CardHeader>

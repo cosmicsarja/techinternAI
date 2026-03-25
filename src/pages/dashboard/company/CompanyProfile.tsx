@@ -95,7 +95,7 @@ export default function CompanyProfile() {
                   </div>
                   <div className="mt-8 pt-8 border-t border-border space-y-2">
                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Investment Volume</p>
-                     <p className="text-3xl font-black text-foreground tracking-tighter">${stats.totalPaid.toLocaleString()}</p>
+                     <p className="text-3xl font-black text-foreground tracking-tighter">₹{stats.totalPaid.toLocaleString()}</p>
                      <p className="text-[10px] font-bold text-emerald-500 uppercase">Released to Talent Network</p>
                   </div>
                </CardContent>

@@ -58,7 +58,7 @@ export default function CompanyPayments() {
       await sendNotification(
         payment.recipient_id,
         '💰 Payment Released!',
-        `$${Number(payment.amount).toLocaleString()} has been released from escrow for "${payment.projects?.title}".`,
+        `₹${Number(payment.amount).toLocaleString()} has been released from escrow for "${payment.projects?.title}".`,
         'success'
       );
       
@@ -100,7 +100,7 @@ export default function CompanyPayments() {
             <CardContent className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{s.label}</p>
-                <p className="text-2xl font-bold text-foreground">{typeof s.value === 'number' && s.label.includes('Investment') || s.label.includes('Escrow') ? `$${s.value.toLocaleString()}` : s.value}</p>
+                <p className="text-2xl font-bold text-foreground">{typeof s.value === 'number' && s.label.includes('Investment') || s.label.includes('Escrow') ? `₹${s.value.toLocaleString()}` : s.value}</p>
               </div>
               <div className={`p-3 rounded-2xl ${s.bg} border border-white/5`}>
                 <s.icon className={`w-6 h-6 ${s.color}`} />

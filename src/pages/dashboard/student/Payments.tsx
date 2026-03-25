@@ -68,7 +68,7 @@ export default function StudentPayments() {
             <CardContent className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{s.label}</p>
-                <p className="text-2xl font-bold text-foreground">${s.value.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-foreground">₹{s.value.toLocaleString()}</p>
               </div>
               <div className={`p-3 rounded-2xl ${s.bg} border border-white/5`}>
                 <s.icon className={`w-6 h-6 ${s.color}`} />
@@ -116,7 +116,7 @@ export default function StudentPayments() {
                       </div>
                     </div>
                     <div className="text-right flex flex-col items-end shrink-0">
-                      <p className="text-sm font-bold text-foreground">+${Number(p.amount).toLocaleString()}</p>
+                      <p className="text-sm font-bold text-foreground">+₹{Number(p.amount).toLocaleString()}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</p>
                     </div>
                   </div>

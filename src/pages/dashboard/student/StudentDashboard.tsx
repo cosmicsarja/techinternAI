@@ -95,7 +95,7 @@ export default function StudentDashboard() {
         {[
           { label: 'Active Bids', value: stats.bids, icon: FileText, color: 'text-blue-400', bg: 'bg-blue-500/10' },
           { label: 'Project Participation', value: stats.teams, icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-          { label: 'Total Revenue', value: `$${stats.earnings.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+          { label: 'Total Revenue', value: `₹${stats.earnings.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
           { label: 'Talent Score', value: stats.reputation, icon: Star, color: 'text-amber-400', bg: 'bg-amber-500/10' },
         ].map((s) => (
           <Card key={s.label} className="border-none shadow-card hover:translate-y-[-2px] transition-all">
@@ -133,7 +133,7 @@ export default function StudentDashboard() {
                         <div className="flex items-center gap-5 text-xs text-muted-foreground font-medium">
                            <span>{p.profiles?.name}</span>
                            <span>•</span>
-                           <span className="font-bold text-foreground">${Number(p.budget).toLocaleString()}</span>
+                           <span className="font-bold text-foreground">₹{Number(p.budget).toLocaleString()}</span>
                            <span>•</span>
                            <span>{formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</span>
                         </div>
@@ -165,7 +165,7 @@ export default function StudentDashboard() {
                          <div className="flex-1 min-w-0 border-b border-border/50 pb-4 group-last:border-none">
                             <p className="text-xs font-bold text-foreground truncate">{a.projects?.title}</p>
                             <p className="text-[10px] text-muted-foreground mt-1 flex items-center justify-between">
-                               <span className="font-bold uppercase tracking-widest">Bid: ${Number(a.bid_amount).toLocaleString()}</span>
+                               <span className="font-bold uppercase tracking-widest">Bid: ₹{Number(a.bid_amount).toLocaleString()}</span>
                                <span>{formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
                             </p>
                             <Badge className={`mt-2 text-[9px] py-0 border ${a.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
