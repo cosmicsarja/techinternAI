@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import {
   LogOut, Shield, Mail, User, Lock, Bell, Trash2,
-  CheckCircle, AlertTriangle, Moon, Sun
+  CheckCircle, AlertTriangle, Moon, Sun, Github, Globe, Linkedin, Link2
 } from 'lucide-react';
 
 export default function StudentSettings() {
@@ -20,12 +20,27 @@ export default function StudentSettings() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPw, setChangingPw] = useState(false);
+  const [savingLinks, setSavingLinks] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState({
     bids: true,
     milestones: true,
     payments: true,
     reviews: true,
   });
+
+  // Links state
+  const [githubUrl, setGithubUrl] = useState('');
+  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
+
+  // Load existing links from profile
+  useEffect(() => {
+    if (profile) {
+      setGithubUrl((profile as any).github_url || '');
+      setPortfolioUrl((profile as any).portfolio_url || '');
+      setLinkedinUrl((profile as any).linkedin_url || '');
+    }
+  }, [profile]);
 
   const handleLogout = async () => {
     await signOut();
@@ -51,6 +66,26 @@ export default function StudentSettings() {
       setConfirmPassword('');
     }
     setChangingPw(false);
+  };
+
+  const handleSaveLinks = async () => {
+    if (!profile) return;
+    setSavingLinks(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        github_url: githubUrl.trim(),
+        portfolio_url: portfolioUrl.trim(),
+        linkedin_url: linkedinUrl.trim(),
+      })
+      .eq('id', profile.id);
+    if (error) {
+      toast.error('Failed to save links: ' + error.message);
+    } else {
+      await refreshProfile();
+      toast.success('Links saved! AI matching will use these to find better projects.');
+    }
+    setSavingLinks(false);
   };
 
   const roleColor: Record<string, string> = {
@@ -108,6 +143,69 @@ export default function StudentSettings() {
           )}
         </CardContent>
       </Card>
+
+      {/* Profile Links for AI Matching — only for students */}
+      {profile?.role === 'student' && (
+        <Card className="shadow-card border-primary/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Link2 className="w-4 h-4 text-primary" /> Profile Links
+              <Badge className="ml-auto bg-primary/10 text-primary border-primary/20 text-[10px] font-bold uppercase">
+                Boosts AI Matching
+              </Badge>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Add your links so companies and AI matching can evaluate your work and find you better projects.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="github-url" className="flex items-center gap-2">
+                <Github className="w-3.5 h-3.5" /> GitHub URL
+              </Label>
+              <Input
+                id="github-url"
+                type="url"
+                value={githubUrl}
+                onChange={(e) => setGithubUrl(e.target.value)}
+                placeholder="https://github.com/yourusername"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="portfolio-url" className="flex items-center gap-2">
+                <Globe className="w-3.5 h-3.5" /> Portfolio / Website URL
+              </Label>
+              <Input
+                id="portfolio-url"
+                type="url"
+                value={portfolioUrl}
+                onChange={(e) => setPortfolioUrl(e.target.value)}
+                placeholder="https://yourportfolio.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="linkedin-url" className="flex items-center gap-2">
+                <Linkedin className="w-3.5 h-3.5" /> LinkedIn URL
+              </Label>
+              <Input
+                id="linkedin-url"
+                type="url"
+                value={linkedinUrl}
+                onChange={(e) => setLinkedinUrl(e.target.value)}
+                placeholder="https://linkedin.com/in/yourprofile"
+              />
+            </div>
+            <Button
+              id="save-links-btn"
+              onClick={handleSaveLinks}
+              disabled={savingLinks}
+              className="gradient-primary text-primary-foreground w-full"
+            >
+              {savingLinks ? 'Saving...' : 'Save Links'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Change Password */}
       <Card className="shadow-card">

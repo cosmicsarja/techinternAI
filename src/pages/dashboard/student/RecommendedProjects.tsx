@@ -90,7 +90,8 @@ export default function RecommendedProjects() {
       await sendNotification(
         project.company_id,
         '🎯 AI-Matched Student Bid!',
-        `${profile.name} (AI matched ${matches.find(m => m.projectId === biddingOnId)?.compatibilityScore}% match) bid $${parseFloat(bidAmount).toLocaleString()} on "${project.title}"`,
+        `${profile.name} (AI matched ${matches.find(m => m.projectId === biddingOnId)?.compatibilityScore}% match) bid ₹${parseFloat(bidAmount).toLocaleString()} on "${project.title}"`,
+
         'info'
       );
 
@@ -222,7 +223,7 @@ export default function RecommendedProjects() {
                           <DollarSign className="w-3 h-3 inline mr-1" /> Budget
                         </p>
                         <p className="text-lg font-black text-foreground">
-                          ${Number(project.budget).toLocaleString()}
+                          ₹{Number(project.budget).toLocaleString()}
                         </p>
                       </div>
 
@@ -289,7 +290,7 @@ export default function RecommendedProjects() {
                                 <Label htmlFor="bid-amount">Bid Amount *</Label>
                                 <div className="relative">
                                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                    $
+                                    ₹
                                   </span>
                                   <Input
                                     id="bid-amount"

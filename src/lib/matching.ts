@@ -8,6 +8,8 @@ export interface StudentProfile {
   name: string;
   skill_score: number;
   github_url?: string;
+  portfolio_url?: string;
+  linkedin_url?: string;
   bio?: string;
 }
 
@@ -117,12 +119,21 @@ export function calculateCompatibility(
     matchReasons.push('High skill level matches project complexity');
   }
 
-  // 3. GitHub Presence (20% weight)
-  const githubScore = student.github_url ? 80 : 40;
-  score += githubScore * 0.2;
+  // 3. Profile Links (20% weight) — GitHub + Portfolio + LinkedIn
+  let linkScore = 0;
   if (student.github_url) {
+    linkScore += 50;
     matchReasons.push('Active GitHub presence');
   }
+  if (student.portfolio_url) {
+    linkScore += 30;
+    matchReasons.push('Portfolio available for review');
+  }
+  if (student.linkedin_url) {
+    linkScore += 20;
+    matchReasons.push('LinkedIn profile linked');
+  }
+  score += Math.min(100, linkScore) * 0.2;
 
   // 4. Budget Fit (10% weight)
   const budgetFit = Math.min(100, (student.skill_score / 100) * 100);
