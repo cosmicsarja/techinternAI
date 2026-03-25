@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
   Zap, Users, TrendingUp, CheckCircle, AlertCircle, Send,
-  ShieldCheck, Code2, Trophy, DollarSign
+  ShieldCheck, Code2, Trophy, DollarSign, Sparkles, ArrowRight
 } from 'lucide-react';
 import { useRealtime } from '@/hooks/useRealtime';
 import { sendNotification } from '@/lib/notifications';
@@ -19,13 +20,15 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 
 export default function AIMatching() {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const [projects, setProjects] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<Record<string, TeamRecommendation>>({});
   const [invitations, setInvitations] = useState<Set<string>>(new Set());
+  const [creatingTeam, setCreatingTeam] = useState<string | null>(null);
+  const [createdTeams, setCreatedTeams] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     if (!profile) return;
@@ -76,24 +79,84 @@ export default function AIMatching() {
 
   useRealtime([{ table: 'projects', onData: fetchAll }, { table: 'profiles', onData: fetchAll }], [profile?.id]);
 
-  const inviteStudent = async (projectId: string, studentId: string, studentName: string) => {
-    setSending(studentId);
+  const acceptAndCreateTeam = async (projectId: string) => {
+    setCreatingTeam(projectId);
     try {
       const project = projects.find(p => p.id === projectId);
+      const recommendation = recommendations[projectId];
       
-      await sendNotification(
-        studentId,
-        '🎯 AI Matched Project Invitation!',
-        `You've been matched with "${project?.title}" by our AI system. Your skills align perfectly! Visit "Recommended Projects" to bid.`,
-        'success'
-      );
+      if (!project || !recommendation || recommendation.suggestedMembers.length === 0) {
+        toast.error('Unable to create team. No recommended members found.');
+        return;
+      }
 
-      setInvitations(prev => new Set([...prev, studentId]));
-      toast.success(`Invitation sent to ${studentName}!`);
+      // Get leader (first/highest score member)
+      const leader = recommendation.suggestedMembers[0];
+      const otherMembers = recommendation.suggestedMembers.slice(1);
+
+      // Create team with project and leader
+      const { data: newTeam, error: teamError } = await supabase
+        .from('teams')
+        .insert({
+          project_id: projectId,
+          leader_id: leader.studentId,
+        })
+        .select()
+        .single();
+
+      if (teamError) throw teamError;
+
+      // Add other members to team_members table
+      if (otherMembers.length > 0) {
+        const memberInserts = otherMembers.map(member => ({
+          team_id: newTeam.id,
+          user_id: member.studentId,
+          role: member.role,
+        }));
+
+        const { error: memberError } = await supabase
+          .from('team_members')
+          .insert(memberInserts);
+
+        if (memberError) throw memberError;
+      }
+
+      // Update project status to 'assigned'
+      const { error: projectError } = await supabase
+        .from('projects')
+        .update({ status: 'assigned' })
+        .eq('id', projectId);
+
+      if (projectError) throw projectError;
+
+      // Notify all team members
+      const allMembers = recommendation.suggestedMembers;
+      
+      for (const member of allMembers) {
+        const roleDisplay = member.role.replace('_', ' ');
+        const isLeader = member.studentId === leader.studentId;
+        
+        await sendNotification(
+          member.studentId,
+          isLeader ? '🎉 You\'ve been selected as Team Lead!' : '🎉 Added to Project Team!',
+          isLeader 
+            ? `Congratulations! You're the team lead for "${project?.title}". Access the workspace and start building!`
+            : `You've been auto-assigned as ${roleDisplay} on "${project?.title}" based on AI matching. Check your Won Projects!`,
+          'success'
+        );
+      }
+
+      setCreatedTeams(prev => new Set([...prev, projectId]));
+      toast.success(`Team created successfully! Redirecting to workspace...`);
+
+      // Redirect to workspace
+      setTimeout(() => {
+        navigate(`/dashboard/workspace?projectId=${projectId}`);
+      }, 1500);
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error('Failed to create team: ' + (err.message || 'Unknown error'));
     } finally {
-      setSending(null);
+      setCreatingTeam(null);
     }
   };
 
@@ -151,9 +214,36 @@ export default function AIMatching() {
                         )}
                       </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Budget</p>
-                      <p className="text-2xl font-black text-foreground">${Number(project.budget).toLocaleString()}</p>
+                    <div className="flex flex-col items-end gap-3 shrink-0">
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Budget</p>
+                        <p className="text-2xl font-black text-foreground">${Number(project.budget).toLocaleString()}</p>
+                      </div>
+                      {!createdTeams.has(project.id) && recommendation && recommendation.suggestedMembers.length > 0 && (
+                        <Button
+                          onClick={() => acceptAndCreateTeam(project.id)}
+                          disabled={creatingTeam === project.id}
+                          className="gradient-primary text-primary-foreground font-bold h-9 text-xs whitespace-nowrap"
+                        >
+                          {creatingTeam === project.id ? (
+                            <>
+                              Creating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3.5 h-3.5 mr-2" />
+                              Accept & Create Team
+                              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      {createdTeams.has(project.id) && (
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                          <CheckCircle className="w-4 h-4 text-emerald-500" />
+                          <span className="text-xs font-bold text-emerald-500">Team Created</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -187,21 +277,32 @@ export default function AIMatching() {
                         <div className="space-y-3">
                           {recommendation.suggestedMembers.map((member, idx) => {
                             const student = students.find(s => s.id === member.studentId);
-                            const isInvited = invitations.has(member.studentId);
+                            const isLeader = idx === 0;
 
                             return (
                               <div
                                 key={member.studentId}
-                                className="p-4 rounded-xl border border-border hover:border-primary/30 transition-colors group"
+                                className={`p-4 rounded-xl border transition-colors group ${
+                                  isLeader 
+                                    ? 'border-primary/30 bg-primary/5' 
+                                    : 'border-border hover:border-primary/30'
+                                }`}
                               >
                                 <div className="flex items-start justify-between gap-4">
                                   <div className="flex items-start gap-4 flex-1 min-w-0">
-                                    <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center text-primary-foreground font-black text-lg shrink-0 shadow-lg">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black shrink-0 shadow-lg ${
+                                      isLeader 
+                                        ? 'gradient-primary text-primary-foreground' 
+                                        : 'bg-muted text-muted-foreground'
+                                    }`}>
                                       {idx + 1}
                                     </div>
                                     <div className="flex-1 min-w-0 pt-1">
-                                      <div className="flex items-center gap-2 mb-2">
+                                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                                         <p className="font-bold text-foreground">{member.name}</p>
+                                        {isLeader && (
+                                          <Badge className="bg-primary/20 text-primary text-[10px] font-bold">TEAM LEAD</Badge>
+                                        )}
                                         {student?.skill_score >= 80 && (
                                           <ShieldCheck className="w-4 h-4 text-blue-500" title="High skill score" />
                                         )}
@@ -220,28 +321,6 @@ export default function AIMatching() {
                                       </div>
                                     </div>
                                   </div>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => inviteStudent(project.id, member.studentId, member.name)}
-                                    disabled={sending === member.studentId || isInvited}
-                                    className={`shrink-0 h-9 px-4 font-bold ${
-                                      isInvited
-                                        ? 'bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20'
-                                        : 'gradient-primary text-primary-foreground'
-                                    }`}
-                                  >
-                                    {isInvited ? (
-                                      <>
-                                        <CheckCircle className="w-4 h-4 mr-1.5" /> Invited
-                                      </>
-                                    ) : sending === member.studentId ? (
-                                      'Sending...'
-                                    ) : (
-                                      <>
-                                        <Send className="w-4 h-4 mr-1.5" /> Invite
-                                      </>
-                                    )}
-                                  </Button>
                                 </div>
                               </div>
                             );
