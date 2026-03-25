@@ -100,7 +100,25 @@
     @apply bg-background text-foreground font-saira antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-saira font-semibold tracking-tight;
+    @apply font-saira font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .heading-xl {
+    @apply text-4xl font-bold font-saira tracking-tight;
+  }
+  .heading-lg {
+    @apply text-3xl font-bold font-saira tracking-tight;
+  }
+  .heading-md {
+    @apply text-2xl font-bold font-saira tracking-tight;
+  }
+  .heading-sm {
+    @apply text-xl font-bold font-saira tracking-tight;
+  }
+  .heading-xs {
+    @apply text-lg font-bold font-saira tracking-tight;
   }
 }
 

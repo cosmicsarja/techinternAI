@@ -6,13 +6,6 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const stats = [
-  { label: 'Active Projects', value: '500+' },
-  { label: 'Student Developers', value: '2,000+' },
-  { label: 'Companies', value: '150+' },
-  { label: 'Paid Out', value: '$1.2M+' },
-];
-
 const features = [
   {
     icon: Users,
@@ -92,21 +85,6 @@ export default function Index() {
               Post a Project
             </Button>
           </div>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20"
-        >
-          {stats.map((s) => (
-            <div key={s.label} className="p-4 rounded-xl bg-card border border-border shadow-card">
-              <p className="text-3xl font-extrabold text-foreground">{s.value}</p>
-              <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
-            </div>
-          ))}
         </motion.div>
       </section>
 
